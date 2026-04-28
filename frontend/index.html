@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Facturas y Albaranes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --azul: #1B3A5C;
+  --azul-med: #2A5280;
+  --azul-claro: #E8EEF4;
+  --dorado: #C9A84C;
+  --dorado-claro: #F5EDD6;
+  --blanco: #FFFFFF;
+  --gris-f: #F7F6F2;
+  --gris-l: #ECEAE4;
+  --gris-m: #8A8880;
+  --verde: #2E7D32;
+  --verde-bg: #E8F5E9;
+  --rojo: #C62828;
+  --rojo-bg: #FFEBEE;
+  --naranja: #E65100;
+  --naranja-bg: #FFF3E0;
+  --sombra: 0 2px 12px rgba(27,58,92,0.10);
+  --sombra-med: 0 4px 24px rgba(27,58,92,0.14);
+  --radio: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--gris-f);color:var(--azul);min-height:100vh;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--azul);display:flex;flex-direction:column;z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.15);}
+.sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-logo h1{font-family:'Playfair Display',serif;color:var(--blanco);font-size:16px;line-height:1.3;}
+.sidebar-logo span{color:var(--dorado);display:block;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+.nav-section{padding:16px 0 8px;flex:1;}
+.nav-label{padding:0 20px 8px;font-size:10px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:rgba(255,255,255,0.65);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:var(--blanco);}
+.nav-item.active{background:rgba(201,168,76,0.15);color:var(--dorado);border-left-color:var(--dorado);}
+.nav-item .icon{font-size:18px;width:22px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--dorado);color:var(--azul);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.3);}
+
+/* ─── MAIN ─── */
+.main{margin-left:240px;min-height:100vh;padding:32px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ─── TOP BAR ─── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.topbar-title h2{font-family:'Playfair Display',serif;font-size:26px;color:var(--azul);}
+.topbar-title p{color:var(--gris-m);font-size:14px;margin-top:2px;}
+.topbar-actions{display:flex;gap:10px;}
+
+/* ─── BOTONES ─── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .2s;text-decoration:none;}
+.btn-primary{background:var(--azul);color:var(--blanco);}
+.btn-primary:hover{background:var(--azul-med);}
+.btn-gold{background:var(--dorado);color:var(--azul);}
+.btn-gold:hover{background:#b8943e;}
+.btn-outline{background:transparent;color:var(--azul);border:1.5px solid var(--gris-l);}
+.btn-outline:hover{border-color:var(--azul);background:var(--azul-claro);}
+.btn-danger{background:transparent;color:var(--rojo);border:1.5px solid var(--rojo-bg);}
+.btn-danger:hover{background:var(--rojo-bg);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* ─── KPIS ─── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.kpi{background:var(--blanco);border-radius:var(--radio);padding:20px 22px;box-shadow:var(--sombra);position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--dorado);}
+.kpi-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gris-m);}
+.kpi-value{font-family:'Playfair Display',serif;font-size:30px;color:var(--azul);margin:6px 0 2px;}
+.kpi-sub{font-size:12px;color:var(--gris-m);}
+.kpi.dorado::before{background:var(--dorado);}
+.kpi.verde::before{background:var(--verde);}
+.kpi.rojo::before{background:var(--rojo);}
+
+/* ─── CARDS ─── */
+.card{background:var(--blanco);border-radius:var(--radio);box-shadow:var(--sombra);overflow:hidden;}
+.card-header{padding:18px 22px;border-bottom:1px solid var(--gris-l);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;}
+.card-body{padding:22px;}
+
+/* ─── TABLA ─── */
+.tabla-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--azul);color:var(--blanco);padding:12px 14px;text-align:left;font-weight:600;font-size:12px;letter-spacing:.5px;white-space:nowrap;}
+thead th:first-child{border-radius:0;}
+tbody tr{border-bottom:1px solid var(--gris-l);transition:background .15s;}
+tbody tr:hover{background:var(--gris-f);}
+tbody td{padding:12px 14px;vertical-align:middle;}
+.text-right{text-align:right;}
+.text-center{text-align:center;}
+
+/* ─── BADGES ─── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px;}
+.badge-procesado{background:var(--verde-bg);color:var(--verde);}
+.badge-pendiente{background:var(--naranja-bg);color:var(--naranja);}
+.badge-error{background:var(--rojo-bg);color:var(--rojo);}
+.badge-neteado{background:var(--dorado-claro);color:#7a5c00;}
+.badge-factura{background:var(--azul-claro);color:var(--azul);}
+.badge-albaran{background:#E8F5E9;color:#1B5E20;}
+
+/* ─── UPLOAD ─── */
+.drop-zone{border:2.5px dashed var(--gris-l);border-radius:var(--radio);padding:48px 32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--blanco);}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--dorado);background:var(--dorado-claro);}
+.drop-icon{font-size:48px;margin-bottom:14px;}
+.drop-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;}
+.drop-sub{color:var(--gris-m);font-size:13px;}
+#fileInput{display:none;}
+
+/* ─── PROGRESS ─── */
+.progress-bar{height:6px;background:var(--gris-l);border-radius:3px;overflow:hidden;margin:8px 0;}
+.progress-fill{height:100%;background:var(--dorado);border-radius:3px;transition:width .3s;}
+
+/* ─── FORM ─── */
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--azul);margin-bottom:6px;}
+.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--gris-l);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--azul);background:var(--blanco);transition:border .2s;}
+.form-control:focus{outline:none;border-color:var(--dorado);background:var(--dorado-claro);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* ─── SEARCH ─── */
+.search-bar{position:relative;}
+.search-bar input{width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--gris-l);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--blanco);}
+.search-bar input:focus{outline:none;border-color:var(--dorado);}
+.search-bar::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;}
+
+/* ─── MODAL ─── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--blanco);border-radius:12px;width:600px;max-width:94vw;max-height:88vh;overflow:auto;box-shadow:var(--sombra-med);}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--gris-l);display:flex;justify-content:space-between;align-items:center;}
+.modal-header h3{font-family:'Playfair Display',serif;font-size:18px;}
+.modal-body{padding:24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--gris-l);display:flex;justify-content:flex-end;gap:10px;}
+.btn-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gris-m);}
+.btn-close:hover{color:var(--azul);}
+
+/* ─── NETEO ─── */
+.neteo-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border:1.5px solid var(--gris-l);border-radius:8px;margin-bottom:8px;transition:all .2s;}
+.neteo-item:hover{border-color:var(--dorado);background:var(--dorado-claro);}
+.neteo-item.selected{border-color:var(--dorado);background:var(--dorado-claro);}
+.neteo-check{width:18px;height:18px;cursor:pointer;accent-color:var(--dorado);}
+.neteo-info{flex:1;margin-left:12px;}
+.neteo-num{font-weight:600;font-size:13px;}
+.neteo-det{font-size:12px;color:var(--gris-m);}
+
+/* ─── NOTIFICACIONES ─── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:10px;}
+.toast{padding:14px 18px;border-radius:10px;font-size:14px;font-weight:500;color:var(--blanco);box-shadow:var(--sombra-med);animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;min-width:280px;}
+.toast-success{background:var(--verde);}
+.toast-error{background:var(--rojo);}
+.toast-info{background:var(--azul);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0;transform:translateX(100%)}}
+
+/* ─── FILTROS ─── */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.filtro-btn{padding:7px 16px;border-radius:20px;border:1.5px solid var(--gris-l);background:var(--blanco);font-size:12px;font-weight:600;color:var(--gris-m);cursor:pointer;transition:all .2s;}
+.filtro-btn.active,.filtro-btn:hover{border-color:var(--azul);background:var(--azul);color:var(--blanco);}
+
+/* ─── DETAIL ROW ─── */
+.detail-row{display:flex;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--gris-l);}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{font-size:12px;color:var(--gris-m);min-width:130px;}
+.detail-val{font-size:13px;font-weight:500;}
+
+/* ─── ESTADOS ─── */
+.estado-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.estado-card{background:var(--gris-f);border-radius:8px;padding:16px;text-align:center;}
+.estado-card-num{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:4px;}
+.estado-card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--gris-m);}
+
+/* ─── LOADING ─── */
+.spinner{display:inline-block;width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:var(--blanco);animation:spin .7s linear infinite;}
+.spinner-dark{border-color:rgba(27,58,92,0.2);border-top-color:var(--azul);}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty-state{text-align:center;padding:48px 24px;color:var(--gris-m);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-text{font-size:15px;}
+
+/* ─── ALBARANES CHIP ─── */
+.alb-chip{display:inline-flex;align-items:center;gap:5px;background:var(--verde-bg);color:var(--verde);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;margin:2px;}
+
+@media(max-width:900px){
+  .sidebar{width:60px;}
+  .sidebar-logo h1,.sidebar-logo span,.nav-item span,.nav-label{display:none;}
+  .main{margin-left:60px;padding:16px;}
+  .kpis{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>Gestión Facturas</h1>
+    <span>& Albaranes</span>
+  </div>
+  <nav class="nav-section">
+    <div class="nav-label">Principal</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">📊</span><span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('escanear')">
+      <span class="icon">📤</span><span>Escanear</span>
+    </div>
+    <div class="nav-item" onclick="showPage('documentos')">
+      <span class="icon">📋</span><span>Documentos</span>
+      <span class="nav-badge" id="badge-total">0</span>
+    </div>
+    <div class="nav-label" style="margin-top:12px">Gestión</div>
+    <div class="nav-item" onclick="showPage('neteo')">
+      <span class="icon">🔗</span><span>Neteo</span>
+    </div>
+    <div class="nav-item" onclick="showPage('reportes')">
+      <span class="icon">📥</span><span>Reportes Excel</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">v1.0.0 · 2026</div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+<!-- ─── DASHBOARD ─── -->
+<div class="page active" id="page-dashboard">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h2>Dashboard</h2>
+      <p>Visión general del sistema</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="cargarEstadisticas()">↻ Actualizar</button>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis">
+    <div class="kpi"><div class="kpi-label">Total Documentos</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub">Procesados en el sistema</div></div>
+    <div class="kpi dorado"><div class="kpi-label">Facturas</div><div class="kpi-value" id="kpi-facturas">—</div><div class="kpi-sub" id="kpi-importe-facturas">€ 0,00</div></div>
+    <div class="kpi verde"><div class="kpi-label">Albaranes</div><div class="kpi-value" id="kpi-albaranes">—</div><div class="kpi-sub" id="kpi-importe-albaranes">€ 0,00</div></div>
+    <div class="kpi rojo"><div class="kpi-label">Neteados</div><div class="kpi-value" id="kpi-neteados">—</div><div class="kpi-sub">Facturas con albarán</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Estado de Documentos</span></div>
+      <div class="card-body">
+        <div class="estado-grid">
+          <div class="estado-card"><div class="estado-card-num" id="est-procesados" style="color:var(--verde)">0</div><div class="estado-card-label">Procesados</div></div>
+          <div class="estado-card"><div class="estado-card-num" id="est-pendientes" style="color:var(--naranja)">0</div><div class="estado-card-label">Pendientes</div></div>
+          <div class="estado-card"><div class="estado-card-num" id="est-errores" style="color:var(--rojo)">0</div><div class="estado-card-label">Errores</div></div>
+          <div class="estado-card"><div class="estado-card-num" id="est-neteados" style="color:var(--dorado)">0</div><div class="estado-card-label">Neteados</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Importe Total Global</span></div>
+      <div class="card-body">
+        <div style="text-align:center;padding:24px 0;">
+          <div style="font-family:'Playfair Display',serif;font-size:42px;color:var(--azul)" id="kpi-total-importe">€ 0,00</div>
+          <div style="color:var(--gris-m);margin-top:8px;font-size:13px">Suma de facturas + albaranes</div>
+          <div style="margin-top:20px">
+            <button class="btn btn-gold" onclick="showPage('reportes')">📥 Generar Reporte Excel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-header"><span class="card-title">Últimos Documentos</span><button class="btn btn-sm btn-outline" onclick="showPage('documentos')">Ver todos →</button></div>
+    <div class="card-body" style="padding:0">
+      <div class="tabla-wrap"><table id="tabla-recientes"><tbody><tr><td colspan="6" class="empty-state"><div class="empty-icon">📄</div><div class="empty-text">Cargando...</div></td></tr></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ESCANEAR ─── -->
+<div class="page" id="page-escanear">
+  <div class="topbar">
+    <div class="topbar-title"><h2>Escanear Documentos</h2><p>Sube facturas y albaranes para procesado OCR automático</p></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 400px;gap:24px;">
+    <div>
+      <div class="card">
+        <div class="card-body">
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <div class="drop-icon">📁</div>
+            <div class="drop-title">Arrastra archivos aquí</div>
+            <div class="drop-sub">PDF, PNG, JPG, TIFF, BMP · Máx. 32 MB por archivo</div>
+            <div style="margin-top:16px"><button class="btn btn-primary" type="button">Seleccionar Archivos</button></div>
+          </div>
+          <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.tiff,.tif,.bmp">
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px" id="cola-card">
+        <div class="card-header"><span class="card-title">Cola de Procesado</span><span id="cola-status" style="font-size:13px;color:var(--gris-m)">0 archivos</span></div>
+        <div class="card-body" id="cola-lista">
+          <div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No hay archivos en cola</div></div>
+        </div>
+        <div style="padding:0 22px 16px;display:flex;justify-content:flex-end;gap:10px" id="cola-actions" style="display:none">
+          <button class="btn btn-outline" onclick="limpiarCola()">Limpiar</button>
+          <button class="btn btn-primary" id="btn-procesar" onclick="procesarCola()">⚡ Procesar Todo</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Información OCR</span></div>
+        <div class="card-body">
+          <div style="font-size:13px;line-height:1.8;color:var(--gris-m)">
+            <div style="margin-bottom:12px"><strong style="color:var(--azul)">¿Cómo funciona?</strong></div>
+            <div>1. Sube la factura o albarán</div>
+            <div>2. El OCR extrae los datos automáticamente</div>
+            <div>3. El sistema busca albaranes coincidentes</div>
+            <div>4. Se realiza el neteo automático si hay coincidencia</div>
+            <div style="margin-top:16px"><strong style="color:var(--azul)">Criterios de neteo:</strong></div>
+            <div>✓ Mismo proveedor (CIF)</div>
+            <div>✓ Fecha dentro de ±30 días</div>
+            <div>✓ Nº albarán mencionado en factura (prioritario)</div>
+            <div style="margin-top:16px"><strong style="color:var(--azul)">Formatos soportados:</strong></div>
+            <div>PDF · PNG · JPG · TIFF · BMP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── DOCUMENTOS ─── -->
+<div class="page" id="page-documentos">
+  <div class="topbar">
+    <div class="topbar-title"><h2>Documentos</h2><p id="doc-count-text">Cargando...</p></div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="cargarDocumentos()">↻ Actualizar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body" style="padding-bottom:0">
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="search-bar" style="flex:1;min-width:200px">
+          <input type="text" id="busqueda" placeholder="Buscar por número, proveedor, CIF..." oninput="filtrarDocumentos()">
+        </div>
+        <div class="filtros" style="margin-bottom:0">
+          <button class="filtro-btn active" onclick="setFiltroTipo('',this)">Todos</button>
+          <button class="filtro-btn" onclick="setFiltroTipo('factura',this)">Facturas</button>
+          <button class="filtro-btn" onclick="setFiltroTipo('albaran',this)">Albaranes</button>
+        </div>
+      </div>
+    </div>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr>
+          <th>Tipo</th><th>Número</th><th>Fecha</th><th>Proveedor</th><th>CIF</th>
+          <th class="text-right">Total</th><th>Estado</th><th>Albaranes</th><th></th>
+        </tr></thead>
+        <tbody id="tabla-docs-body">
+          <tr><td colspan="9" class="empty-state"><div class="spinner spinner-dark"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ─── NETEO ─── -->
+<div class="page" id="page-neteo">
+  <div class="topbar">
+    <div class="topbar-title"><h2>Neteo Facturas ↔ Albaranes</h2><p>Asocia manualmente facturas con sus albaranes correspondientes</p></div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="cargarNeteo()">↻ Actualizar</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">📋 Facturas sin Albarán</span><span class="badge badge-error" id="count-facturas-sin">0</span></div>
+      <div class="card-body" id="lista-facturas-sin">
+        <div class="empty-state"><div class="spinner spinner-dark"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">📦 Albaranes sin Factura</span><span class="badge badge-neteado" id="count-albaranes-sin">0</span></div>
+      <div class="card-body" id="lista-albaranes-sin">
+        <div class="empty-state"><div class="spinner spinner-dark"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px" id="card-asociar" style="display:none">
+    <div class="card-header">
+      <span class="card-title" id="asociar-titulo">Asociar Albaranes a Factura</span>
+    </div>
+    <div class="card-body" id="asociar-body">
+      <p style="color:var(--gris-m);font-size:14px">Selecciona una factura de la lista izquierda para asociar albaranes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── REPORTES ─── -->
+<div class="page" id="page-reportes">
+  <div class="topbar">
+    <div class="topbar-title"><h2>Reportes Excel</h2><p>Genera reportes profesionales descargables</p></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:400px 1fr;gap:24px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Configurar Reporte</span></div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Fecha Desde (opcional)</label>
+          <input type="date" class="form-control" id="rep-desde">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Hasta (opcional)</label>
+          <input type="date" class="form-control" id="rep-hasta">
+        </div>
+        <button class="btn btn-gold" style="width:100%;justify-content:center" id="btn-generar" onclick="generarReporte()">
+          📥 Generar y Descargar Excel
+        </button>
+        <div style="margin-top:12px;font-size:12px;color:var(--gris-m);line-height:1.6">
+          El reporte incluirá:<br>
+          • Portada con KPIs ejecutivos<br>
+          • Listado completo de documentos<br>
+          • Resumen comparativo facturas vs albaranes<br>
+          • Hoja de Neteo con estado de asociaciones
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Contenido del Reporte</span></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:var(--azul);color:var(--blanco);border-radius:8px;padding:20px">
+            <div style="font-size:22px;margin-bottom:8px">📊</div>
+            <div style="font-weight:700;margin-bottom:4px">Portada Ejecutiva</div>
+            <div style="font-size:12px;opacity:.75">KPIs clave, totales y métricas del período seleccionado</div>
+          </div>
+          <div style="background:var(--dorado-claro);border-radius:8px;padding:20px">
+            <div style="font-size:22px;margin-bottom:8px">📋</div>
+            <div style="font-weight:700;margin-bottom:4px;color:var(--azul)">Listado Completo</div>
+            <div style="font-size:12px;color:var(--gris-m)">Todos los documentos con base, IVA, total y estado</div>
+          </div>
+          <div style="background:var(--verde-bg);border-radius:8px;padding:20px">
+            <div style="font-size:22px;margin-bottom:8px">📈</div>
+            <div style="font-weight:700;margin-bottom:4px;color:var(--verde)">Resumen Comparativo</div>
+            <div style="font-size:12px;color:var(--gris-m)">Facturas vs albaranes con % del total</div>
+          </div>
+          <div style="background:var(--azul-claro);border-radius:8px;padding:20px">
+            <div style="font-size:22px;margin-bottom:8px">🔗</div>
+            <div style="font-weight:700;margin-bottom:4px;color:var(--azul)">Neteo</div>
+            <div style="font-size:12px;color:var(--gris-m)">Estado de asociación factura ↔ albarán</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ─── MODAL DETALLE ─── -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-titulo">Detalle del Documento</h3>
+      <button class="btn-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-cuerpo"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-eliminar-modal">🗑 Eliminar</button>
+      <a class="btn btn-outline btn-sm" id="btn-ver-archivo" href="#" target="_blank">📄 Ver Archivo</a>
+      <button class="btn btn-outline" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOASTS ─── -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let docsCache = [];
+let filtroTipo = '';
+let facturaSeleccionada = null;
+let albaranesSeleccionados = new Set();
+
+// ═══════════════════════════════════════════
+// NAVEGACIÓN
+// ═══════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+  if (id === 'dashboard') { cargarEstadisticas(); cargarRecientes(); }
+  if (id === 'documentos') cargarDocumentos();
+  if (id === 'neteo') cargarNeteo();
+}
+
+// ═══════════════════════════════════════════
+// ESTADÍSTICAS
+// ═══════════════════════════════════════════
+async function cargarEstadisticas() {
+  try {
+    const r = await fetch(`${API}/estadisticas`);
+    const d = await r.json();
+    document.getElementById('kpi-total').textContent = d.total_documentos;
+    document.getElementById('kpi-facturas').textContent = d.facturas;
+    document.getElementById('kpi-albaranes').textContent = d.albaranes;
+    document.getElementById('kpi-neteados').textContent = d.neteados;
+    document.getElementById('kpi-importe-facturas').textContent = fmt(d.importe_facturas);
+    document.getElementById('kpi-importe-albaranes').textContent = fmt(d.importe_albaranes);
+    document.getElementById('kpi-total-importe').textContent = fmt(d.importe_total);
+    document.getElementById('badge-total').textContent = d.total_documentos;
+    document.getElementById('est-procesados').textContent = d.procesados;
+    document.getElementById('est-pendientes').textContent = d.pendientes;
+    document.getElementById('est-errores').textContent = d.errores;
+    document.getElementById('est-neteados').textContent = d.neteados;
+  } catch(e) { toast('No se puede conectar con el servidor', 'error'); }
+}
+
+async function cargarRecientes() {
+  try {
+    const r = await fetch(`${API}/documentos?por_pagina=6`);
+    const d = await r.json();
+    const tbody = document.querySelector('#tabla-recientes tbody');
+    if (!d.documentos?.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Sin documentos todavía</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.documentos.map(doc => `
+      <tr style="cursor:pointer" onclick="verDetalle(${doc.id})">
+        <td><span class="badge ${doc.tipo === 'factura' ? 'badge-factura' : 'badge-albaran'}">${doc.tipo === 'factura' ? 'FACTURA' : 'ALBARÁN'}</span></td>
+        <td><strong>${doc.numero || '—'}</strong></td>
+        <td>${doc.fecha || '—'}</td>
+        <td>${doc.proveedor || '—'}</td>
+        <td class="text-right"><strong>${fmt(doc.total)}</strong></td>
+        <td><span class="badge ${badgeEstado(doc.estado)}">${doc.estado}</span></td>
+      </tr>`).join('');
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+// DOCUMENTOS
+// ═══════════════════════════════════════════
+async function cargarDocumentos() {
+  try {
+    const busq = document.getElementById('busqueda')?.value || '';
+    let url = `${API}/documentos?por_pagina=200`;
+    if (filtroTipo) url += `&tipo=${filtroTipo}`;
+    if (busq) url += `&q=${encodeURIComponent(busq)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    docsCache = d.documentos || [];
+    document.getElementById('doc-count-text').textContent = `${d.total} documentos encontrados`;
+    renderTablaDocumentos(docsCache);
+  } catch(e) { toast('Error cargando documentos', 'error'); }
+}
+
+function renderTablaDocumentos(docs) {
+  const tbody = document.getElementById('tabla-docs-body');
+  if (!docs.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No hay documentos</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = docs.map(doc => {
+    const albs = doc.albaranes_asociados?.map(a =>
+      `<span class="alb-chip">🔗 ${a.numero || a.id}</span>`).join('') || '';
+    return `
+    <tr style="cursor:pointer" onclick="verDetalle(${doc.id})">
+      <td><span class="badge ${doc.tipo === 'factura' ? 'badge-factura' : 'badge-albaran'}">${doc.tipo === 'factura' ? 'FACTURA' : 'ALBARÁN'}</span></td>
+      <td><strong>${doc.numero || '—'}</strong></td>
+      <td>${doc.fecha || '—'}</td>
+      <td>${doc.proveedor || '—'}</td>
+      <td>${doc.cif || '—'}</td>
+      <td class="text-right"><strong>${fmt(doc.total)}</strong></td>
+      <td><span class="badge ${badgeEstado(doc.estado)}">${doc.estado}</span></td>
+      <td>${albs || '<span style="color:var(--gris-m);font-size:12px">—</span>'}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-danger" onclick="eliminarDoc(${doc.id})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filtrarDocumentos() { cargarDocumentos(); }
+
+function setFiltroTipo(tipo, el) {
+  filtroTipo = tipo;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  cargarDocumentos();
+}
+
+async function eliminarDoc(id) {
+  if (!confirm('¿Eliminar este documento?')) return;
+  try {
+    await fetch(`${API}/documentos/${id}`, { method: 'DELETE' });
+    toast('Documento eliminado', 'success');
+    cargarDocumentos();
+    cargarEstadisticas();
+  } catch(e) { toast('Error eliminando', 'error'); }
+}
+
+// ═══════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════
+const colaArchivos = [];
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  agregarArchivos(Array.from(e.dataTransfer.files));
+});
+fileInput.addEventListener('change', e => agregarArchivos(Array.from(e.target.files)));
+
+function agregarArchivos(files) {
+  files.forEach(f => colaArchivos.push({ file: f, estado: 'pendiente' }));
+  renderCola();
+}
+
+function renderCola() {
+  const lista = document.getElementById('cola-lista');
+  const status = document.getElementById('cola-status');
+  const actions = document.getElementById('cola-actions');
+  if (!colaArchivos.length) {
+    lista.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No hay archivos en cola</div></div>';
+    status.textContent = '0 archivos';
+    actions.style.display = 'none';
+    return;
+  }
+  status.textContent = `${colaArchivos.length} archivo(s)`;
+  actions.style.display = 'flex';
+  lista.innerHTML = colaArchivos.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gris-l)">
+      <span style="font-size:20px">${item.file.name.endsWith('.pdf') ? '📄' : '🖼️'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${item.file.name}</div>
+        <div style="font-size:11px;color:var(--gris-m)">${(item.file.size/1024/1024).toFixed(2)} MB</div>
+        ${item.estado !== 'pendiente' ? `<div class="progress-bar"><div class="progress-fill" style="width:${item.estado === 'procesando' ? '60%' : '100%'}"></div></div>` : ''}
+      </div>
+      <span class="badge ${item.estado === 'ok' ? 'badge-procesado' : item.estado === 'error' ? 'badge-error' : 'badge-pendiente'}">
+        ${item.estado === 'ok' ? '✓ OK' : item.estado === 'error' ? '✗ Error' : '⏳ Pendiente'}
+      </span>
+      ${item.estado === 'pendiente' ? `<button class="btn btn-sm btn-danger" onclick="colaArchivos.splice(${i},1);renderCola()">✕</button>` : ''}
+    </div>`).join('');
+}
+
+function limpiarCola() { colaArchivos.length = 0; renderCola(); }
+
+async function procesarCola() {
+  const btn = document.getElementById('btn-procesar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Procesando...';
+  let ok = 0, err = 0;
+  for (let i = 0; i < colaArchivos.length; i++) {
+    const item = colaArchivos[i];
+    if (item.estado !== 'pendiente') continue;
+    item.estado = 'procesando';
+    renderCola();
+    try {
+      const fd = new FormData();
+      fd.append('archivo', item.file);
+      const r = await fetch(`${API}/escanear`, { method: 'POST', body: fd });
+      const d = await r.json();
+      if (r.ok) {
+        item.estado = 'ok';
+        item.resultado = d;
+        ok++;
+        if (d.albaranes_neteados_automaticamente > 0)
+          toast(`✅ ${item.file.name}: neteado con ${d.albaranes_neteados_automaticamente} albarán(es)`, 'success');
+        else
+          toast(`✅ ${item.file.name} procesado correctamente`, 'success');
+      } else {
+        item.estado = 'error';
+        err++;
+        // Mostrar popup si el documento no es factura/albarán
+        if (d.error && d.error.includes('no es una factura')) {
+          alert(`⚠️ DOCUMENTO NO VÁLIDO\n\n${d.error}\n\nSolo se aceptan facturas y albaranes.`);
+          // Eliminar de la cola automáticamente
+          colaArchivos.splice(i, 1);
+          i--;
+          renderCola();
+        } else {
+          toast(`⚠️ ${item.file.name}: ${d.error}`, 'error');
+        }
+      }
+    } catch(e) { item.estado = 'error'; err++; }
+    renderCola();
+  }
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Procesar Todo';
+  cargarEstadisticas();
+  toast(`Procesado: ${ok} correcto(s), ${err} error(es)`, ok ? 'success' : 'error');
+}
+
+// ═══════════════════════════════════════════
+// NETEO
+// ═══════════════════════════════════════════
+async function cargarNeteo() {
+  facturaSeleccionada = null;
+  albaranesSeleccionados.clear();
+  try {
+    const r = await fetch(`${API}/neteo/sin-asociar`);
+    const d = await r.json();
+
+    document.getElementById('count-facturas-sin').textContent = d.facturas_sin_albaran.length;
+    document.getElementById('count-albaranes-sin').textContent = d.albaranes_sin_factura.length;
+
+    const lf = document.getElementById('lista-facturas-sin');
+    if (!d.facturas_sin_albaran.length) {
+      lf.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Todas las facturas tienen albarán</div></div>';
+    } else {
+      lf.innerHTML = d.facturas_sin_albaran.map(f => `
+        <div class="neteo-item" id="fact-${f.id}" onclick="seleccionarFactura(${f.id}, '${f.numero || f.id}', '${f.proveedor || ''}')">
+          <div class="neteo-info">
+            <div class="neteo-num">📋 ${f.numero || `Doc #${f.id}`}</div>
+            <div class="neteo-det">${f.proveedor || '—'} · ${f.fecha || '—'} · <strong>${fmt(f.total)}</strong></div>
+          </div>
+          <span style="color:var(--gris-m);font-size:18px">→</span>
+        </div>`).join('');
+    }
+
+    const la = document.getElementById('lista-albaranes-sin');
+    if (!d.albaranes_sin_factura.length) {
+      la.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Todos los albaranes están asociados</div></div>';
+    } else {
+      la.innerHTML = d.albaranes_sin_factura.map(a => `
+        <div class="neteo-item" id="alb-${a.id}">
+          <input type="checkbox" class="neteo-check" id="chk-${a.id}" onchange="toggleAlbaran(${a.id})">
+          <div class="neteo-info">
+            <div class="neteo-num">📦 ${a.numero || `Doc #${a.id}`}</div>
+            <div class="neteo-det">${a.proveedor || '—'} · ${a.fecha || '—'} · <strong>${fmt(a.total)}</strong></div>
+          </div>
+        </div>`).join('');
+    }
+  } catch(e) { toast('Error cargando neteo', 'error'); }
+}
+
+function seleccionarFactura(id, numero, proveedor) {
+  facturaSeleccionada = id;
+  document.querySelectorAll('[id^="fact-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`fact-${id}`)?.classList.add('selected');
+
+  const card = document.getElementById('card-asociar');
+  card.style.display = 'block';
+  document.getElementById('asociar-titulo').textContent = `Asociar a: ${numero}`;
+  document.getElementById('asociar-body').innerHTML = `
+    <p style="font-size:13px;color:var(--gris-m);margin-bottom:16px">
+      Selecciona los albaranes de la lista y pulsa <strong>Asociar</strong>.
+    </p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="facturaSeleccionada=null;document.getElementById('card-asociar').style.display='none'">Cancelar</button>
+      <button class="btn btn-gold" onclick="asociarSeleccionados()">🔗 Asociar Seleccionados</button>
+    </div>`;
+}
+
+function toggleAlbaran(id) {
+  if (albaranesSeleccionados.has(id)) albaranesSeleccionados.delete(id);
+  else albaranesSeleccionados.add(id);
+  document.getElementById(`alb-${id}`)?.classList.toggle('selected');
+}
+
+async function asociarSeleccionados() {
+  if (!facturaSeleccionada) { toast('Selecciona una factura primero', 'error'); return; }
+  if (!albaranesSeleccionados.size) { toast('Selecciona al menos un albarán', 'error'); return; }
+  try {
+    const r = await fetch(`${API}/neteo/asociar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ factura_id: facturaSeleccionada, albaran_ids: Array.from(albaranesSeleccionados) })
+    });
+    const d = await r.json();
+    toast(`✅ ${d.mensaje}`, 'success');
+    albaranesSeleccionados.clear();
+    cargarNeteo();
+    cargarEstadisticas();
+  } catch(e) { toast('Error al asociar', 'error'); }
+}
+
+// ═══════════════════════════════════════════
+// DETALLE / MODAL
+// ═══════════════════════════════════════════
+async function verDetalle(id) {
+  try {
+    const r = await fetch(`${API}/documentos/${id}`);
+    const d = await r.json();
+    document.getElementById('modal-titulo').textContent =
+      `${d.tipo === 'factura' ? '📋 Factura' : '📦 Albarán'}: ${d.numero || `#${d.id}`}`;
+
+    const albs = d.albaranes_asociados?.length ? d.albaranes_asociados.map(a =>
+      `<span class="alb-chip">🔗 ${a.numero || `#${a.id}`}</span>`).join('') : '<em style="color:var(--gris-m)">Ninguno</em>';
+
+    document.getElementById('modal-cuerpo').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          ${detRow('Tipo', d.tipo === 'factura' ? 'FACTURA' : 'ALBARÁN')}
+          ${detRow('Número', d.numero || '—')}
+          ${detRow('Fecha', d.fecha || '—')}
+          ${detRow('Estado', `<span class="badge ${badgeEstado(d.estado)}">${d.estado}</span>`)}
+          ${detRow('Proveedor', d.proveedor || '—')}
+          ${detRow('CIF/NIF', d.cif || '—')}
+        </div>
+        <div>
+          ${detRow('Base Imponible', fmt(d.base_imponible))}
+          ${detRow('IVA', `${d.porcentaje_iva}% → ${fmt(d.iva)}`)}
+          ${detRow('Total', `<strong style="font-size:16px">${fmt(d.total)}</strong>`)}
+          ${detRow('Archivo', d.archivo_original || '—')}
+          ${detRow('Fecha Subida', d.fecha_subida ? new Date(d.fecha_subida).toLocaleString('es-ES') : '—')}
+        </div>
+      </div>
+      ${d.tipo === 'factura' ? `<div style="margin-top:16px"><div class="form-label">Albaranes Asociados</div><div>${albs}</div></div>` : ''}
+      ${d.notas ? `<div style="margin-top:16px"><div class="form-label">Notas</div><div style="font-size:13px">${d.notas}</div></div>` : ''}`;
+
+    // Botón ver archivo
+    const btnVer = document.getElementById('btn-ver-archivo');
+    btnVer.href = `${API}/documentos/${id}/archivo`;
+    btnVer.style.display = 'inline-flex';
+
+    document.getElementById('btn-eliminar-modal').onclick = async () => {
+      if (!confirm('¿Eliminar?')) return;
+      await fetch(`${API}/documentos/${id}`, { method: 'DELETE' });
+      cerrarModal(); cargarDocumentos(); cargarEstadisticas();
+      toast('Documento eliminado', 'success');
+    };
+    document.getElementById('modal-detalle').classList.add('open');
+  } catch(e) { toast('Error cargando detalle', 'error'); }
+}
+
+function detRow(label, val) {
+  return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-val">${val}</span></div>`;
+}
+function cerrarModal() { document.getElementById('modal-detalle').classList.remove('open'); }
+document.getElementById('modal-detalle').addEventListener('click', e => { if (e.target === e.currentTarget) cerrarModal(); });
+
+// ═══════════════════════════════════════════
+// REPORTES
+// ═══════════════════════════════════════════
+async function generarReporte() {
+  const btn = document.getElementById('btn-generar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generando...';
+  try {
+    const body = {};
+    const desde = document.getElementById('rep-desde').value;
+    const hasta = document.getElementById('rep-hasta').value;
+    if (desde) body.fecha_desde = desde;
+    if (hasta) body.fecha_hasta = hasta;
+
+    const r = await fetch(`${API}/reportes/generar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('Error generando reporte');
+
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte_facturas_${new Date().toISOString().slice(0,10)}.xlsx`;
+    a.click();
+    toast('✅ Reporte descargado correctamente', 'success');
+  } catch(e) { toast('Error generando reporte: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = '📥 Generar y Descargar Excel'; }
+}
+
+// ═══════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════
+function fmt(n) {
+  if (!n && n !== 0) return '—';
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n);
+}
+
+function badgeEstado(est) {
+  if (est === 'PROCESADO') return 'badge-procesado';
+  if (est === 'PENDIENTE') return 'badge-pendiente';
+  if (est === 'ERROR') return 'badge-error';
+  if (est === 'FACTURA_ASOCIADA') return 'badge-neteado';
+  return 'badge-pendiente';
+}
+
+function toast(msg, tipo = 'info') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = `toast toast-${tipo}`;
+  t.innerHTML = `<span>${tipo === 'success' ? '✓' : tipo === 'error' ? '✗' : 'ℹ'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'fadeOut .3s forwards'; setTimeout(() => t.remove(), 300); }, 4000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  cargarEstadisticas();
+  cargarRecientes();
+});
+</script>
+</body>
+</html>

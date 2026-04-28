@@ -1,0 +1,36 @@
+INFO:__main__:Base de datos inicializada
+Sistema de Facturas y Albaranes iniciado
+   Backend: http://localhost:5000
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.18.24:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with watchdog (windowsapi)
+INFO:__main__:Base de datos inicializada
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 133-271-925
+C:\Users\paula\Desktop\sistema de facturas y albaranes\backend\app.py:425: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  return jsonify({'status': 'ok', 'timestamp': datetime.utcnow().isoformat()})
+INFO:werkzeug:127.0.0.1 - - [27/Apr/2026 23:36:49] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [27/Apr/2026 23:36:50] "GET /api/health HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [27/Apr/2026 23:36:52] "GET /api/documentos?por_pagina=6 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [27/Apr/2026 23:36:52] "GET /api/estadisticas HTTP/1.1" 200 -
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\Dot.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\Dot.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\Graph.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\Graph.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\GraphAlgo.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\GraphAlgo.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\GraphStat.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\GraphStat.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\GraphUtil.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\GraphUtil.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\ObjectGraph.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\ObjectGraph.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\__init__.py', reloading
+INFO:werkzeug: * Detected change in 'C:\\Users\\paula\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\altgraph\\__init__.py', reloading
+Sistema de Facturas y Albaranes iniciado
+   Backend: http://localhost:5000
